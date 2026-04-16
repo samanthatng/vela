@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vela — Digital Footprint Scan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #0e0e0d;
+    --ink-soft: #3a3a37;
+    --ink-muted: #7a7a74;
+    --paper: #f5f3ee;
+    --paper-warm: #ede9e0;
+    --gold: #b89a6a;
+    --rule: rgba(14,14,13,0.1);
+    --red: #c0392b;
+    --amber: #d4841a;
+    --green: #2e7d52;
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 3rem;
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 20px;
+    letter-spacing: 0.15em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .nav-back {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+  .nav-back:hover { color: var(--gold); }
+
+  /* SCAN FORM */
+  .scan-wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+
+  .scan-header {
+    margin-bottom: 3rem;
+  }
+  .scan-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .scan-eyebrow::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 0.5px;
+    background: var(--gold);
+  }
+  .scan-header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 42px;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+  .scan-header p {
+    font-size: 14px;
+    color: var(--ink-muted);
+    max-width: 480px;
+  }
+
+  /* CONFIG NOTICE */
+  .config-notice {
+    background: #fff8e7;
+    border: 0.5px solid #d4841a;
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+    font-size: 13px;
+    color: #7a5a10;
+    display: none;
+  }
+  .config-notice.visible { display: block; }
+  .config-notice strong { font-weight: 400; color: #5a3d00; }
+
+  /* API CONFIG */
+  .api-config {
+    background: var(--paper-warm);
+    border: 0.5px solid var(--rule);
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .api-config h3 {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 1rem;
+  }
+  .api-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .api-row label {
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.06em;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .api-row input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 0.5px solid var(--rule);
+    background: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    outline: none;
+    font-family: monospace;
+  }
+  .api-row input:focus { border-color: var(--gold); }
+  .api-save {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .api-save:hover { background: var(--gold); }
+  .api-saved {
+    font-size: 12px;
+    color: var(--green);
+    margin-left: 12px;
+    display: none;
+  }
+
+  /* FORM */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 0.5px solid var(--ink);
+    background: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--ink);
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--gold); }
+
+  .field-full { grid-column: 1 / -1; }
+
+  .scan-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--ink);
+    border: none;
+    color: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .scan-btn:hover { background: var(--gold); }
+  .scan-btn:disabled { background: var(--ink-muted); cursor: not-allowed; }
+
+  .disclaimer {
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* PROGRESS */
+  .progress-wrap {
+    display: none;
+    margin: 3rem 0;
+  }
+  .progress-wrap.visible { display: block; }
+  .progress-label {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-bar-track {
+    height: 1px;
+    background: var(--rule);
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 1px;
+    background: var(--gold);
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .progress-steps {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .progress-step {
+    font-size: 13px;
+    color: var(--ink-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.3s ease;
+  }
+  .progress-step.active { opacity: 1; transform: translateX(0); color: var(--ink-soft); }
+  .progress-step.done { opacity: 0.5; }
+  .step-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--rule);
+    flex-shrink: 0;
+  }
+  .progress-step.active .step-dot { background: var(--gold); }
+  .progress-step.done .step-dot { background: var(--green); }
+
+  /* RESULTS */
+  .results-wrap {
+    display: none;
+    margin-top: 3rem;
+  }
+  .results-wrap.visible { display: block; }
+
+  .results-header {
+    border-bottom: 0.5px solid var(--rule);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .results-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 32px;
+  }
+  .results-header h2 span { font-style: italic; color: var(--ink-muted); }
+
+  .risk-badge {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    font-weight: 400;
+  }
+  .risk-high { background: #fde8e6; color: var(--red); }
+  .risk-medium { background: #fef3e2; color: var(--amber); }
+  .risk-low { background: #e6f4ec; color: var(--green); }
+
+  /* SUMMARY STATS */
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 0.5px solid var(--rule);
+    margin-bottom: 2.5rem;
+  }
+  .stat {
+    padding: 1.25rem;
+    border-right: 0.5px solid var(--rule);
+    text-align: center;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.06em;
+  }
+  .stat-num.danger { color: var(--red); }
+  .stat-num.warn { color: var(--amber); }
+  .stat-num.safe { color: var(--green); }
+
+  /* CATEGORY SECTIONS */
+  .category {
+    margin-bottom: 2.5rem;
+  }
+  .category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 0.5px solid var(--rule);
+    margin-bottom: 1rem;
+    cursor: pointer;
+  }
+  .category-title {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .cat-count {
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+  .category-toggle {
+    font-size: 18px;
+    color: var(--ink-muted);
+    transition: transform 0.2s;
+  }
+  .category.collapsed .category-toggle { transform: rotate(-90deg); }
+  .category.collapsed .result-items { display: none; }
+
+  .result-items { display: flex; flex-direction: column; gap: 8px; }
+
+  .result-item {
+    border: 0.5px solid var(--rule);
+    padding: 1rem 1.25rem;
+    background: var(--paper);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .result-item:hover { border-color: var(--gold); }
+
+  .result-left { flex: 1; min-width: 0; }
+  .result-title {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 400;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .result-url {
+    font-size: 11px;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  .result-snippet {
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .result-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .risk-pill {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+  }
+  .result-action {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    border-bottom: 0.5px solid var(--gold);
+    cursor: pointer;
+    background: none;
+    border-left: none;
+    border-top: none;
+    border-right: none;
+    padding: 0 0 1px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .empty-state {
+    padding: 2rem;
+    text-align: center;
+    border: 0.5px dashed var(--rule);
+    color: var(--ink-muted);
+    font-size: 13px;
+  }
+
+  /* REPORT ACTIONS */
+  .report-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--rule);
+  }
+  .action-btn {
+    flex: 1;
+    padding: 14px;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 0.5px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .action-btn:hover { background: var(--ink); color: var(--paper); }
+  .action-btn.primary { background: var(--ink); color: var(--paper); }
+  .action-btn.primary:hover { background: var(--gold); border-color: var(--gold); }
+
+  .spinner {
+    width: 14px; height: 14px;
+    border: 1.5px solid rgba(245,243,238,0.3);
+    border-top-color: var(--paper);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    nav { padding: 1.25rem 1.5rem; }
+    .scan-wrap { padding: 2.5rem 1.5rem; }
+    .form-grid { grid-template-columns: 1fr; }
+    .api-row { grid-template-columns: 1fr; }
+    .summary-stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .stat:nth-child(3) { border-right: 0.5px solid var(--rule); }
+    .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 0.5px solid var(--rule); }
+    .results-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .report-actions { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">V E L A</a>
+  <a href="index.html" class="nav-back">← Back</a>
+</nav>
+
+<div class="scan-wrap">
+
+  <div class="scan-header">
+    <p class="scan-eyebrow">Digital footprint scan</p>
+    <h1>What does the internet<br>know about you?</h1>
+    <p>Enter a name to run a live scan across social media, news archives, court records, and general search results. Results are private and never stored.</p>
+  </div>
+
+  <!-- API CONFIG -->
+  <div class="api-config">
+    <h3>API configuration (one-time setup)</h3>
+    <div class="api-row">
+      <div>
+        <label>Google API Key</label>
+        <input type="password" id="api-key" placeholder="AIza..." autocomplete="off" />
+      </div>
+      <div>
+        <label>Search Engine ID (cx)</label>
+        <input type="text" id="cx-key" placeholder="a1b2c3d4e5f6..." autocomplete="off" />
+      </div>
+    </div>
+    <button class="api-save" onclick="saveConfig()">Save keys</button>
+    <span class="api-saved" id="api-saved">Keys saved locally</span>
+    <p style="font-size:11px; color:var(--ink-muted); margin-top:10px;">Keys are stored in your browser only. Never sent to Vela servers.</p>
+  </div>
+
+  <div class="config-notice" id="config-notice">
+    <strong>API keys not configured.</strong> Add your Google API key and Search Engine ID above to run live scans. <a href="https://programmablesearchengine.google.com" target="_blank" style="color:var(--amber);">Get your keys →</a>
+  </div>
+
+  <!-- SCAN FORM -->
+  <div class="form-grid">
+    <div class="field">
+      <label>Full name</label>
+      <input type="text" id="full-name" placeholder="e.g. Jane Smith" />
+    </div>
+    <div class="field">
+      <label>Country</label>
+      <select id="country">
+        <option value="Singapore">Singapore</option>
+        <option value="Thailand">Thailand</option>
+        <option value="Malaysia">Malaysia</option>
+        <option value="Indonesia">Indonesia</option>
+        <option value="Philippines">Philippines</option>
+        <option value="Vietnam">Vietnam</option>
+        <option value="Hong Kong">Hong Kong</option>
+        <option value="Global">Global (no filter)</option>
+      </select>
+    </div>
+    <div class="field field-full">
+      <label>Additional context (optional)</label>
+      <input type="text" id="context" placeholder="e.g. CEO, lawyer, former company name — helps narrow results" />
+    </div>
+  </div>
+
+  <button class="scan-btn" id="scan-btn" onclick="runScan()">
+    <span class="spinner" id="spinner"></span>
+    <span id="btn-label">Run digital footprint scan</span>
+  </button>
+
+  <p class="disclaimer">Results are sourced live from Google Search. Vela does not store or share any scan data. For personal use only.</p>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-label">
+      <span id="progress-text">Scanning...</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progress-bar"></div>
+    </div>
+    <div class="progress-steps" id="progress-steps"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-wrap" id="results-wrap">
+    <div class="results-header">
+      <h2>Footprint report — <span id="report-name"></span></h2>
+      <span class="risk-badge" id="overall-risk"></span>
+    </div>
+
+    <div class="summary-stats">
+      <div class="stat">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-label">Total findings</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num danger" id="stat-high">0</div>
+        <div class="stat-label">High exposure</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num warn" id="stat-med">0</div>
+        <div class="stat-label">Medium exposure</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num safe" id="stat-low">0</div>
+        <div class="stat-label">Low exposure</div>
+      </div>
+    </div>
+
+    <div id="categories-container"></div>
+
+    <div class="report-actions">
+      <button class="action-btn" onclick="printReport()">Download report</button>
+      <button class="action-btn" onclick="resetScan()">Run new scan</button>
+      <button class="action-btn primary" onclick="requestRemoval()">Request removal →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const CATEGORIES = [
+  {
+    id: 'social',
+    label: 'Social media profiles',
+    queries: ['{name} site:linkedin.com OR site:facebook.com OR site:instagram.com OR site:twitter.com OR site:x.com OR site:tiktok.com'],
+    riskLevel: (r) => r.link.includes('linkedin') ? 'low' : 'medium',
+    icon: '◎'
+  },
+  {
+    id: 'news',
+    label: 'News & press coverage',
+    queries: ['"{name}" {country} news OR article OR press'],
+    riskLevel: (r) => {
+      const s = (r.title + r.snippet).toLowerCase();
+      if (s.match(/fraud|scam|arrest|charge|lawsuit|scandal|controversy/)) return 'high';
+      if (s.match(/court|legal|dispute|allegation/)) return 'medium';
+      return 'low';
+    },
+    icon: '◈'
+  },
+  {
+    id: 'court',
+    label: 'Court & legal records',
+    queries: ['"{name}" court OR lawsuit OR legal OR judgment OR plaintiff OR defendant {country}'],
+    riskLevel: () => 'high',
+    icon: '◆'
+  },
+  {
+    id: 'general',
+    label: 'General mentions',
+    queries: ['"{name}" {country}'],
+    riskLevel: (r) => {
+      const s = (r.title + r.snippet).toLowerCase();
+      if (s.match(/fraud|arrest|scam|criminal/)) return 'high';
+      if (s.match(/complaint|dispute|negative/)) return 'medium';
+      return 'low';
+    },
+    icon: '◇'
+  }
+];
+
+function saveConfig() {
+  const key = document.getElementById('api-key').value.trim();
+  const cx = document.getElementById('cx-key').value.trim();
+  if (key) localStorage.setItem('vela_gkey', key);
+  if (cx) localStorage.setItem('vela_cx', cx);
+  const saved = document.getElementById('api-saved');
+  saved.style.display = 'inline';
+  setTimeout(() => saved.style.display = 'none', 2500);
+}
+
+function loadConfig() {
+  const key = localStorage.getItem('vela_gkey') || '';
+  const cx = localStorage.getItem('vela_cx') || '';
+  if (key) document.getElementById('api-key').value = key;
+  if (cx) document.getElementById('cx-key').value = cx;
+  return { key, cx };
+}
+
+async function searchGoogle(query, apiKey, cx) {
+  const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(query)}&num=5`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Search failed: ${res.status}`);
+  const data = await res.json();
+  return data.items || [];
+}
+
+function setProgress(pct, text) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  if (text) document.getElementById('progress-text').textContent = text;
+}
+
+function addProgressStep(text, state = 'active') {
+  const container = document.getElementById('progress-steps');
+  const el = document.createElement('div');
+  el.className = `progress-step ${state}`;
+  el.innerHTML = `<div class="step-dot"></div><span>${text}</span>`;
+  container.appendChild(el);
+  return el;
+}
+
+function markStepDone(el) {
+  el.classList.remove('active');
+  el.classList.add('done');
+}
+
+function riskColor(level) {
+  if (level === 'high') return '#fde8e6; color: #c0392b';
+  if (level === 'medium') return '#fef3e2; color: #d4841a';
+  return '#e6f4ec; color: #2e7d52';
+}
+
+function buildCategory(cat, results, name) {
+  const container = document.getElementById('categories-container');
+  const div = document.createElement('div');
+  div.className = 'category';
+
+  const highCount = results.filter(r => cat.riskLevel(r) === 'high').length;
+  const countColor = highCount > 0 ? '#fde8e6; color:#c0392b' : results.length > 0 ? '#fef3e2; color:#d4841a' : '#e6f4ec; color:#2e7d52';
+
+  div.innerHTML = `
+    <div class="category-header" onclick="toggleCategory(this.parentElement)">
+      <div class="category-title">
+        <span>${cat.icon}</span>
+        ${cat.label}
+        <span class="cat-count" style="background:${countColor};">${results.length} found</span>
+      </div>
+      <span class="category-toggle">▾</span>
+    </div>
+    <div class="result-items" id="items-${cat.id}"></div>
+  `;
+  container.appendChild(div);
+
+  const itemsEl = document.getElementById(`items-${cat.id}`);
+  if (results.length === 0) {
+    itemsEl.innerHTML = `<div class="empty-state">No results found for this category.</div>`;
+    return;
+  }
+
+  results.forEach(r => {
+    const risk = cat.riskLevel(r);
+    const item = document.createElement('div');
+    item.className = 'result-item';
+    item.innerHTML = `
+      <div class="result-left">
+        <div class="result-title">${r.title}</div>
+        <div class="result-url">${r.link}</div>
+        <div class="result-snippet">${r.snippet || ''}</div>
+      </div>
+      <div class="result-right">
+        <span class="risk-pill" style="background:${riskColor(risk)};">${risk}</span>
+        <a href="${r.link}" target="_blank" class="result-action">View →</a>
+      </div>
+    `;
+    itemsEl.appendChild(item);
+  });
+}
+
+function toggleCategory(el) {
+  el.classList.toggle('collapsed');
+}
+
+async function runScan() {
+  const { key, cx } = loadConfig();
+  const name = document.getElementById('full-name').value.trim();
+  const country = document.getElementById('country').value;
+  const context = document.getElementById('context').value.trim();
+
+  if (!name) {
+    document.getElementById('full-name').style.borderColor = 'var(--red)';
+    return;
+  }
+  document.getElementById('full-name').style.borderColor = 'var(--ink)';
+
+  if (!key || !cx) {
+    document.getElementById('config-notice').classList.add('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  document.getElementById('config-notice').classList.remove('visible');
+
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true;
+  document.getElementById('spinner').style.display = 'block';
+  document.getElementById('btn-label').textContent = 'Scanning...';
+
+  document.getElementById('progress-wrap').classList.add('visible');
+  document.getElementById('results-wrap').classList.remove('visible');
+  document.getElementById('categories-container').innerHTML = '';
+  document.getElementById('progress-steps').innerHTML = '';
+
+  const searchName = context ? `${name} ${context}` : name;
+  const allResults = {};
+  let totalFindings = 0, highCount = 0, medCount = 0, lowCount = 0;
+
+  for (let i = 0; i < CATEGORIES.length; i++) {
+    const cat = CATEGORIES[i];
+    const pct = Math.round(((i) / CATEGORIES.length) * 90);
+    setProgress(pct, `Scanning ${cat.label.toLowerCase()}...`);
+
+    const step = addProgressStep(`Searching ${cat.label.toLowerCase()}...`);
+
+    try {
+      const q = cat.queries[0]
+        .replace('{name}', searchName)
+        .replace('{country}', country);
+
+      const results = await searchGoogle(q, key, cx);
+      allResults[cat.id] = results;
+      totalFindings += results.length;
+      results.forEach(r => {
+        const risk = cat.riskLevel(r);
+        if (risk === 'high') highCount++;
+        else if (risk === 'medium') medCount++;
+        else lowCount++;
+      });
+      markStepDone(step);
+      step.querySelector('span:last-child').textContent = `${cat.label} — ${results.length} result${results.length !== 1 ? 's' : ''} found`;
+    } catch (e) {
+      allResults[cat.id] = [];
+      markStepDone(step);
+      step.querySelector('span:last-child').textContent = `${cat.label} — error fetching results`;
+    }
+
+    await new Promise(r => setTimeout(r, 400));
+  }
+
+  setProgress(100, 'Scan complete');
+  addProgressStep('Generating report...', 'active');
+  await new Promise(r => setTimeout(r, 600));
+
+  document.getElementById('report-name').textContent = name;
+  document.getElementById('stat-total').textContent = totalFindings;
+  document.getElementById('stat-high').textContent = highCount;
+  document.getElementById('stat-med').textContent = medCount;
+  document.getElementById('stat-low').textContent = lowCount;
+
+  const overallRisk = highCount > 2 ? 'high' : highCount > 0 || medCount > 3 ? 'medium' : 'low';
+  const riskEl = document.getElementById('overall-risk');
+  riskEl.textContent = overallRisk === 'high' ? 'High exposure' : overallRisk === 'medium' ? 'Medium exposure' : 'Low exposure';
+  riskEl.className = `risk-badge risk-${overallRisk}`;
+
+  CATEGORIES.forEach(cat => {
+    buildCategory(cat, allResults[cat.id] || [], name);
+  });
+
+  document.getElementById('results-wrap').classList.add('visible');
+  document.getElementById('results-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  btn.disabled = false;
+  document.getElementById('spinner').style.display = 'none';
+  document.getElementById('btn-label').textContent = 'Run digital footprint scan';
+}
+
+function resetScan() {
+  document.getElementById('results-wrap').classList.remove('visible');
+  document.getElementById('progress-wrap').classList.remove('visible');
+  document.getElementById('full-name').value = '';
+  document.getElementById('context').value = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function printReport() {
+  window.print();
+}
+
+function requestRemoval() {
+  alert('Removal workflow coming soon. This will allow you to initiate takedown requests for each flagged result.');
+}
+
+window.addEventListener('load', loadConfig);
+</script>
+</body>
+</html>
