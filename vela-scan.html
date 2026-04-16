@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vela — Digital Footprint Scan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #0e0e0d;
+    --ink-soft: #3a3a37;
+    --ink-muted: #7a7a74;
+    --paper: #f5f3ee;
+    --paper-warm: #ede9e0;
+    --gold: #b89a6a;
+    --rule: rgba(14,14,13,0.1);
+    --red: #c0392b;
+    --amber: #d4841a;
+    --green: #2e7d52;
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 3rem;
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 20px;
+    letter-spacing: 0.15em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .nav-back {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+  .nav-back:hover { color: var(--gold); }
+
+  /* SCAN FORM */
+  .scan-wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+
+  .scan-header {
+    margin-bottom: 3rem;
+  }
+  .scan-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .scan-eyebrow::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 0.5px;
+    background: var(--gold);
+  }
+  .scan-header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 42px;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+  .scan-header p {
+    font-size: 14px;
+    color: var(--ink-muted);
+    max-width: 480px;
+  }
+
+  /* CONFIG NOTICE */
+  .config-notice {
+    background: #fff8e7;
+    border: 0.5px solid #d4841a;
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+    font-size: 13px;
+    color: #7a5a10;
+    display: none;
+  }
+  .config-notice.visible { display: block; }
+  .config-notice strong { font-weight: 400; color: #5a3d00; }
+
+  /* API CONFIG */
+  .api-config {
+    background: var(--paper-warm);
+    border: 0.5px solid var(--rule);
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .api-config h3 {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 1rem;
+  }
+  .api-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .api-row label {
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.06em;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .api-row input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 0.5px solid var(--rule);
+    background: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    outline: none;
+    font-family: monospace;
+  }
+  .api-row input:focus { border-color: var(--gold); }
+  .api-save {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .api-save:hover { background: var(--gold); }
+  .api-saved {
+    font-size: 12px;
+    color: var(--green);
+    margin-left: 12px;
+    display: none;
+  }
+
+  /* FORM */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 0.5px solid var(--ink);
+    background: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--ink);
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--gold); }
+
+  .field-full { grid-column: 1 / -1; }
+
+  .scan-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--ink);
+    border: none;
+    color: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .scan-btn:hover { background: var(--gold); }
+  .scan-btn:disabled { background: var(--ink-muted); cursor: not-allowed; }
+
+  .disclaimer {
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* PROGRESS */
+  .progress-wrap {
+    display: none;
+    margin: 3rem 0;
+  }
+  .progress-wrap.visible { display: block; }
+  .progress-label {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-bar-track {
+    height: 1px;
+    background: var(--rule);
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 1px;
+    background: var(--gold);
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .progress-steps {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .progress-step {
+    font-size: 13px;
+    color: var(--ink-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.3s ease;
+  }
+  .progress-step.active { opacity: 1; transform: translateX(0); color: var(--ink-soft); }
+  .progress-step.done { opacity: 0.5; }
+  .step-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--rule);
+    flex-shrink: 0;
+  }
+  .progress-step.active .step-dot { background: var(--gold); }
+  .progress-step.done .step-dot { background: var(--green); }
+
+  /* RESULTS */
+  .results-wrap {
+    display: none;
+    margin-top: 3rem;
+  }
+  .results-wrap.visible { display: block; }
+
+  .results-header {
+    border-bottom: 0.5px solid var(--rule);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .results-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 32px;
+  }
+  .results-header h2 span { font-style: italic; color: var(--ink-muted); }
+
+  .risk-badge {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    font-weight: 400;
+  }
+  .risk-high { background: #fde8e6; color: var(--red); }
+  .risk-medium { background: #fef3e2; color: var(--amber); }
+  .risk-low { background: #e6f4ec; color: var(--green); }
+
+  /* SUMMARY STATS */
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 0.5px solid var(--rule);
+    margin-bottom: 2.5rem;
+  }
+  .stat {
+    padding: 1.25rem;
+    border-right: 0.5px solid var(--rule);
+    text-align: center;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.06em;
+  }
+  .stat-num.danger { color: var(--red); }
+  .stat-num.warn { color: var(--amber); }
+  .stat-num.safe { color: var(--green); }
+
+  /* CATEGORY SECTIONS */
+  .category {
+    margin-bottom: 2.5rem;
+  }
+  .category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 0.5px solid var(--rule);
+    margin-bottom: 1rem;
+    cursor: pointer;
+  }
+  .category-title {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .cat-count {
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+  .category-toggle {
+    font-size: 18px;
+    color: var(--ink-muted);
+    transition: transform 0.2s;
+  }
+  .category.collapsed .category-toggle { transform: rotate(-90deg); }
+  .category.collapsed .result-items { display: none; }
+
+  .result-items { display: flex; flex-direction: column; gap: 8px; }
+
+  .result-item {
+    border: 0.5px solid var(--rule);
+    padding: 1rem 1.25rem;
+    background: var(--paper);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .result-item:hover { border-color: var(--gold); }
+
+  .result-left { flex: 1; min-width: 0; }
+  .result-title {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 400;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .result-url {
+    font-size: 11px;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  .result-snippet {
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .result-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .risk-pill {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+  }
+  .result-action {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    border-bottom: 0.5px solid var(--gold);
+    cursor: pointer;
+    background: none;
+    border-left: none;
+    border-top: none;
+    border-right: none;
+    padding: 0 0 1px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .empty-state {
+    padding: 2rem;
+    text-align: center;
+    border: 0.5px dashed var(--rule);
+    color: var(--ink-muted);
+    font-size: 13px;
+  }
+
+  /* REPORT ACTIONS */
+  .report-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--rule);
+  }
+  .action-btn {
+    flex: 1;
+    padding: 14px;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 0.5px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .action-btn:hover { background: var(--ink); color: var(--paper); }
+  .action-btn.primary { background: var(--ink); color: var(--paper); }
+  .action-btn.primary:hover { background: var(--gold); border-color: var(--gold); }
+
+  .spinner {
+    width: 14px; height: 14px;
+    border: 1.5px solid rgba(245,243,238,0.3);
+    border-top-color: var(--paper);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    nav { padding: 1.25rem 1.5rem; }
+    .scan-wrap { padding: 2.5rem 1.5rem; }
+    .form-grid { grid-template-columns: 1fr; }
+    .api-row { grid-template-columns: 1fr; }
+    .summary-stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .stat:nth-child(3) { border-right: 0.5px solid var(--rule); }
+    .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 0.5px solid var(--rule); }
+    .results-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .report-actions { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">V E L A</a>
+  <a href="index.html" class="nav-back">← Back</a>
+</nav>
+
+<div class="scan-wrap">
+
+  <div class="scan-header">
+    <p class="scan-eyebrow">Digital footprint scan</p>
+    <h1>What does the internet<br>know about you?</h1>
+    <p>Enter a name to run a live scan across social media, news archives, court records, and general search results. Results are private and never stored.</p>
+  </div>
+
+  <!-- API CONFIG -->
+  <div class="api-config">
+    <h3>API configuration (one-time setup)</h3>
+    <div class="api-row">
+      <div style="grid-column: 1 / -1;">
+        <label>SerpApi Key</label>
+        <input type="password" id="api-key" placeholder="Paste your SerpApi key here..." autocomplete="off" />
+      </div>
+    </div>
+    <button class="api-save" onclick="saveConfig()">Save key</button>
+    <span class="api-saved" id="api-saved">Key saved locally</span>
+    <p style="font-size:11px; color:var(--ink-muted); margin-top:10px;">Key is stored in your browser only. Never sent to Vela servers. Get your key at <a href="https://serpapi.com/dashboard" target="_blank" style="color:var(--gold);">serpapi.com/dashboard</a></p>
+  </div>
+
+  <div class="config-notice" id="config-notice">
+    <strong>API key not configured.</strong> Add your SerpApi key above to run live scans. <a href="https://serpapi.com/dashboard" target="_blank" style="color:var(--amber);">Get your key →</a>
+  </div>
+
+  <!-- SCAN FORM -->
+  <div class="form-grid">
+    <div class="field field-full">
+      <label>Primary name</label>
+      <input type="text" id="full-name" placeholder="e.g. Gavin Tan" />
+    </div>
+    <div class="field field-full">
+      <label>Alternate name 1 <span style="color:var(--ink-muted); font-size:10px; letter-spacing:0;">optional</span></label>
+      <input type="text" id="alt-name-1" placeholder="e.g. Gavin Tan Guo Hao" />
+    </div>
+    <div class="field field-full">
+      <label>Alternate name 2 <span style="color:var(--ink-muted); font-size:10px; letter-spacing:0;">optional</span></label>
+      <input type="text" id="alt-name-2" placeholder="e.g. Tan Guo Hao" />
+    </div>
+    <div class="field">
+      <label>Country</label>
+      <select id="country">
+        <option value="Singapore">Singapore</option>
+        <option value="Thailand">Thailand</option>
+        <option value="Malaysia">Malaysia</option>
+        <option value="Indonesia">Indonesia</option>
+        <option value="Philippines">Philippines</option>
+        <option value="Vietnam">Vietnam</option>
+        <option value="Hong Kong">Hong Kong</option>
+        <option value="Global">Global (no filter)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Additional context <span style="color:var(--ink-muted); font-size:10px; letter-spacing:0;">optional</span></label>
+      <input type="text" id="context" placeholder="Select or type below" list="context-suggestions" />
+      <datalist id="context-suggestions">
+        <option value="CEO">
+        <option value="Director">
+        <option value="Lawyer">
+        <option value="Doctor">
+        <option value="Entrepreneur">
+        <option value="Investor">
+        <option value="Politician">
+        <option value="Banker">
+        <option value="Consultant">
+        <option value="Former employee">
+        <option value="Business owner">
+      </datalist>
+      <p style="font-size:11px; color:var(--ink-muted); margin-top:5px;">Adding your role or company name helps narrow results to you specifically.</p>
+    </div>
+  </div>
+
+  <!-- RISK LEGEND -->
+  <div style="display:flex; gap:0; border:0.5px solid var(--rule); margin-bottom: 1.5rem;">
+    <div style="flex:1; padding:12px 14px; border-right:0.5px solid var(--rule);">
+      <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--red); margin-right:6px;"></span>
+      <span style="font-size:11px; font-weight:400; color:var(--ink);">High</span>
+      <p style="font-size:11px; color:var(--ink-muted); margin-top:3px; line-height:1.5;">Directly damaging — negative news, legal records, fraud mentions. Likely to harm reputation if seen by employers, clients, or partners.</p>
+    </div>
+    <div style="flex:1; padding:12px 14px; border-right:0.5px solid var(--rule);">
+      <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--amber); margin-right:6px;"></span>
+      <span style="font-size:11px; font-weight:400; color:var(--ink);">Medium</span>
+      <p style="font-size:11px; color:var(--ink-muted); margin-top:3px; line-height:1.5;">Potentially sensitive — personal details, old profiles, or ambiguous mentions that may raise questions or expose private information.</p>
+    </div>
+    <div style="flex:1; padding:12px 14px;">
+      <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--green); margin-right:6px;"></span>
+      <span style="font-size:11px; font-weight:400; color:var(--ink);">Low</span>
+      <p style="font-size:11px; color:var(--ink-muted); margin-top:3px; line-height:1.5;">Minimal concern — professional profiles, general mentions, or neutral content unlikely to impact reputation.</p>
+    </div>
+  </div>
+
+  <button class="scan-btn" id="scan-btn" onclick="runScan()">
+    <span class="spinner" id="spinner"></span>
+    <span id="btn-label">Run digital footprint scan</span>
+  </button>
+
+  <p class="disclaimer">Results are sourced live from Google Search. Vela does not store or share any scan data. For personal use only.</p>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-label">
+      <span id="progress-text">Scanning...</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progress-bar"></div>
+    </div>
+    <div class="progress-steps" id="progress-steps"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-wrap" id="results-wrap">
+    <div class="results-header">
+      <h2>Footprint report — <span id="report-name"></span></h2>
+      <span class="risk-badge" id="overall-risk"></span>
+    </div>
+
+    <div class="summary-stats">
+      <div class="stat">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-label">Total findings</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num danger" id="stat-high">0</div>
+        <div class="stat-label">High exposure</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num warn" id="stat-med">0</div>
+        <div class="stat-label">Medium exposure</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num safe" id="stat-low">0</div>
+        <div class="stat-label">Low exposure</div>
+      </div>
+    </div>
+
+    <div id="categories-container"></div>
+
+    <div class="report-actions">
+      <button class="action-btn" onclick="printReport()">Download report</button>
+      <button class="action-btn" onclick="resetScan()">Run new scan</button>
+      <button class="action-btn primary" onclick="requestRemoval()">Request removal →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const CATEGORIES = [
+  {
+    id: 'social',
+    label: 'Social media profiles',
+    queries: ['{name} site:linkedin.com OR site:facebook.com OR site:instagram.com OR site:twitter.com OR site:x.com OR site:tiktok.com'],
+    riskLevel: (r) => r.link.includes('linkedin') ? 'low' : 'medium',
+    icon: '◎'
+  },
+  {
+    id: 'news',
+    label: 'News & press coverage',
+    queries: ['"{name}" {country} news OR article OR press'],
+    riskLevel: (r) => {
+      const s = (r.title + r.snippet).toLowerCase();
+      if (s.match(/fraud|scam|arrest|charge|lawsuit|scandal|controversy/)) return 'high';
+      if (s.match(/court|legal|dispute|allegation/)) return 'medium';
+      return 'low';
+    },
+    icon: '◈'
+  },
+  {
+    id: 'court',
+    label: 'Court & legal records',
+    queries: ['"{name}" court OR lawsuit OR legal OR judgment OR plaintiff OR defendant {country}'],
+    riskLevel: () => 'high',
+    icon: '◆'
+  },
+  {
+    id: 'general',
+    label: 'General mentions',
+    queries: ['"{name}" {country}'],
+    riskLevel: (r) => {
+      const s = (r.title + r.snippet).toLowerCase();
+      if (s.match(/fraud|arrest|scam|criminal/)) return 'high';
+      if (s.match(/complaint|dispute|negative/)) return 'medium';
+      return 'low';
+    },
+    icon: '◇'
+  }
+];
+
+function saveConfig() {
+  const key = document.getElementById('api-key').value.trim();
+  if (key) localStorage.setItem('vela_serpkey', key);
+  const saved = document.getElementById('api-saved');
+  saved.style.display = 'inline';
+  setTimeout(() => saved.style.display = 'none', 2500);
+}
+
+function loadConfig() {
+  const key = localStorage.getItem('vela_serpkey') || '';
+  if (key) document.getElementById('api-key').value = key;
+  return { key };
+}
+
+async function searchSerpApi(query, apiKey) {
+  const params = new URLSearchParams({ q: query, api_key: apiKey });
+  const url = `/api/search?${params.toString()}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.results || [];
+}
+
+function setProgress(pct, text) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  if (text) document.getElementById('progress-text').textContent = text;
+}
+
+function addProgressStep(text, state = 'active') {
+  const container = document.getElementById('progress-steps');
+  const el = document.createElement('div');
+  el.className = `progress-step ${state}`;
+  el.innerHTML = `<div class="step-dot"></div><span>${text}</span>`;
+  container.appendChild(el);
+  return el;
+}
+
+function markStepDone(el) {
+  el.classList.remove('active');
+  el.classList.add('done');
+}
+
+function riskColor(level) {
+  if (level === 'high') return '#fde8e6; color: #c0392b';
+  if (level === 'medium') return '#fef3e2; color: #d4841a';
+  return '#e6f4ec; color: #2e7d52';
+}
+
+function buildCategory(cat, results, name) {
+  const container = document.getElementById('categories-container');
+  const div = document.createElement('div');
+  div.className = 'category';
+
+  const highCount = results.filter(r => cat.riskLevel(r) === 'high').length;
+  const countColor = highCount > 0 ? '#fde8e6; color:#c0392b' : results.length > 0 ? '#fef3e2; color:#d4841a' : '#e6f4ec; color:#2e7d52';
+
+  div.innerHTML = `
+    <div class="category-header" onclick="toggleCategory(this.parentElement)">
+      <div class="category-title">
+        <span>${cat.icon}</span>
+        ${cat.label}
+        <span class="cat-count" style="background:${countColor};">${results.length} found</span>
+      </div>
+      <span class="category-toggle">▾</span>
+    </div>
+    <div class="result-items" id="items-${cat.id}"></div>
+  `;
+  container.appendChild(div);
+
+  const itemsEl = document.getElementById(`items-${cat.id}`);
+  if (results.length === 0) {
+    itemsEl.innerHTML = `<div class="empty-state">No results found for this category.</div>`;
+    return;
+  }
+
+  results.forEach(r => {
+    const risk = cat.riskLevel(r);
+    const item = document.createElement('div');
+    item.className = 'result-item';
+    item.innerHTML = `
+      <div class="result-left">
+        <div class="result-title">${r.title}</div>
+        <div class="result-url">${r.link}</div>
+        <div class="result-snippet">${r.snippet || ''}</div>
+      </div>
+      <div class="result-right">
+        <span class="risk-pill" style="background:${riskColor(risk)};">${risk}</span>
+        <a href="${r.link}" target="_blank" class="result-action">View →</a>
+      </div>
+    `;
+    itemsEl.appendChild(item);
+  });
+}
+
+function toggleCategory(el) {
+  el.classList.toggle('collapsed');
+}
+
+async function runScan() {
+  const { key } = loadConfig();
+  const name = document.getElementById('full-name').value.trim();
+  const altName1 = document.getElementById('alt-name-1').value.trim();
+  const altName2 = document.getElementById('alt-name-2').value.trim();
+  const country = document.getElementById('country').value;
+  const context = document.getElementById('context').value.trim();
+
+  if (!name) {
+    document.getElementById('full-name').style.borderColor = 'var(--red)';
+    return;
+  }
+  document.getElementById('full-name').style.borderColor = 'var(--ink)';
+
+  if (!key) {
+    document.getElementById('config-notice').classList.add('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  document.getElementById('config-notice').classList.remove('visible');
+
+  // Build list of name variants to search
+  const nameVariants = [name];
+  if (altName1) nameVariants.push(altName1);
+  if (altName2) nameVariants.push(altName2);
+
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true;
+  document.getElementById('spinner').style.display = 'block';
+  document.getElementById('btn-label').textContent = 'Scanning...';
+
+  document.getElementById('progress-wrap').classList.add('visible');
+  document.getElementById('results-wrap').classList.remove('visible');
+  document.getElementById('categories-container').innerHTML = '';
+  document.getElementById('progress-steps').innerHTML = '';
+
+  const allResults = {};
+  let totalFindings = 0, highCount = 0, medCount = 0, lowCount = 0;
+
+  for (let i = 0; i < CATEGORIES.length; i++) {
+    const cat = CATEGORIES[i];
+    const pct = Math.round(((i) / CATEGORIES.length) * 90);
+    setProgress(pct, `Scanning ${cat.label.toLowerCase()}...`);
+    const step = addProgressStep(`Searching ${cat.label.toLowerCase()}...`);
+
+    try {
+      // Search all name variants and deduplicate by URL
+      const seen = new Set();
+      const combinedResults = [];
+
+      for (const variant of nameVariants) {
+        const searchName = context ? `${variant} ${context}` : variant;
+        const q = cat.queries[0]
+          .replace('{name}', searchName)
+          .replace('{country}', country);
+
+        const results = await searchSerpApi(q, key);
+        for (const r of results) {
+          if (!seen.has(r.link)) {
+            seen.add(r.link);
+            combinedResults.push(r);
+          }
+        }
+      }
+
+      allResults[cat.id] = combinedResults;
+      totalFindings += combinedResults.length;
+      combinedResults.forEach(r => {
+        const risk = cat.riskLevel(r);
+        if (risk === 'high') highCount++;
+        else if (risk === 'medium') medCount++;
+        else lowCount++;
+      });
+      markStepDone(step);
+      step.querySelector('span:last-child').textContent = `${cat.label} — ${combinedResults.length} result${combinedResults.length !== 1 ? 's' : ''} found`;
+    } catch (e) {
+      allResults[cat.id] = [];
+      markStepDone(step);
+      step.querySelector('span:last-child').textContent = `${cat.label} — ${e.message}`;
+    }
+
+    await new Promise(r => setTimeout(r, 400));
+  }
+
+  setProgress(100, 'Scan complete');
+  addProgressStep('Generating report...', 'active');
+  await new Promise(r => setTimeout(r, 600));
+
+  document.getElementById('report-name').textContent = name;
+  document.getElementById('stat-total').textContent = totalFindings;
+  document.getElementById('stat-high').textContent = highCount;
+  document.getElementById('stat-med').textContent = medCount;
+  document.getElementById('stat-low').textContent = lowCount;
+
+  const overallRisk = highCount > 2 ? 'high' : highCount > 0 || medCount > 3 ? 'medium' : 'low';
+  const riskEl = document.getElementById('overall-risk');
+  riskEl.textContent = overallRisk === 'high' ? 'High exposure' : overallRisk === 'medium' ? 'Medium exposure' : 'Low exposure';
+  riskEl.className = `risk-badge risk-${overallRisk}`;
+
+  CATEGORIES.forEach(cat => {
+    buildCategory(cat, allResults[cat.id] || [], name);
+  });
+
+  document.getElementById('results-wrap').classList.add('visible');
+  document.getElementById('results-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  btn.disabled = false;
+  document.getElementById('spinner').style.display = 'none';
+  document.getElementById('btn-label').textContent = 'Run digital footprint scan';
+}
+
+function resetScan() {
+  document.getElementById('results-wrap').classList.remove('visible');
+  document.getElementById('progress-wrap').classList.remove('visible');
+  document.getElementById('full-name').value = '';
+  document.getElementById('alt-name-1').value = '';
+  document.getElementById('alt-name-2').value = '';
+  document.getElementById('context').value = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function printReport() {
+  window.print();
+}
+
+function requestRemoval() {
+  document.getElementById('removal-modal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('removal-modal').style.display = 'none';
+}
+
+function submitRemoval() {
+  const type = document.getElementById('removal-type').value;
+  const url = document.getElementById('removal-url').value.trim();
+  const reason = document.getElementById('removal-reason').value.trim();
+  const email = document.getElementById('removal-email').value.trim();
+
+  if (!url || !reason || !email) {
+    alert('Please fill in all required fields.');
+    return;
+  }
+
+  const domain = (() => { try { return new URL(url).hostname; } catch { return url; } })();
+  const isGoogle = true;
+  const isGDPR = ['sg','th','my','id','ph','vn'].some(c => domain.endsWith('.'+c)) || true;
+
+  const instructions = generateRemovalInstructions(domain, type, url, reason);
+  document.getElementById('removal-instructions').innerHTML = instructions;
+  document.getElementById('removal-form').style.display = 'none';
+  document.getElementById('removal-result').style.display = 'block';
+}
+
+function generateRemovalInstructions(domain, type, url, reason) {
+  const googleDelistUrl = `https://search.google.com/search-console/remove-outdated-content?hl=en`;
+  const gdprUrl = `https://www.google.com/webmasters/tools/legal-removal-request?complaint_type=2&hl=en`;
+
+  let steps = '';
+
+  if (type === 'search') {
+    steps = `
+      <p style="margin-bottom:1rem;">To remove this URL from Google search results, submit an outdated content removal request:</p>
+      <ol style="font-size:13px; color:var(--ink-soft); line-height:2; padding-left:1.2rem;">
+        <li>Go to <a href="${googleDelistUrl}" target="_blank" style="color:var(--gold);">Google Search Console — Remove Outdated Content</a></li>
+        <li>Paste this URL: <code style="font-size:11px; background:var(--paper-warm); padding:2px 6px;">${url}</code></li>
+        <li>Submit the request — Google typically responds within 24–48 hours</li>
+      </ol>
+      <p style="font-size:12px; color:var(--ink-muted); margin-top:1rem;">Note: This only removes the cached result from Google. To remove the content at source, contact the website directly.</p>
+    `;
+  } else if (type === 'gdpr') {
+    steps = `
+      <p style="margin-bottom:1rem;">Under GDPR / PDPA you have the right to request erasure of personal data. File a formal request:</p>
+      <ol style="font-size:13px; color:var(--ink-soft); line-height:2; padding-left:1.2rem;">
+        <li>Go to <a href="${gdprUrl}" target="_blank" style="color:var(--gold);">Google Legal Removal Request</a></li>
+        <li>Select "Personal information" as the content type</li>
+        <li>Paste the URL and describe why it qualifies for erasure</li>
+        <li>For the source website, send a formal email to their privacy contact — <strong>Vela has drafted a letter for you below</strong></li>
+      </ol>
+      <div style="background:var(--paper-warm); border:0.5px solid var(--rule); padding:1.25rem; margin-top:1.25rem; font-size:12px; line-height:1.8; color:var(--ink-soft);">
+        <p style="font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:0.75rem;">AI-drafted removal letter</p>
+        <p>To Whom It May Concern,</p><br>
+        <p>I am writing to formally request the removal of personal information about me published at the following URL:</p>
+        <p><strong>${url}</strong></p><br>
+        <p>Under applicable data protection legislation including the Personal Data Protection Act (PDPA) and GDPR Article 17 (Right to Erasure), I request that you permanently delete this content from your platform and any associated databases.</p><br>
+        <p>Grounds for this request: ${reason}</p><br>
+        <p>Please confirm removal within 30 days. Failure to comply may result in a formal complaint to the relevant data protection authority.</p><br>
+        <p>Yours sincerely,<br>[Your full name]<br>[Your contact email]</p>
+      </div>
+      <button onclick="copyLetter()" style="margin-top:12px; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; background:transparent; border:0.5px solid var(--ink); padding:8px 16px; cursor:pointer; font-family:'DM Sans',sans-serif;">Copy letter</button>
+    `;
+  } else if (type === 'platform') {
+    steps = `
+      <p style="margin-bottom:1rem;">To request removal directly from the platform hosting this content:</p>
+      <ol style="font-size:13px; color:var(--ink-soft); line-height:2; padding-left:1.2rem;">
+        <li>Visit <a href="${url}" target="_blank" style="color:var(--gold);">${domain}</a> and look for a "Report" or "Contact" option</li>
+        <li>If none exists, find their privacy or legal email (usually privacy@${domain} or legal@${domain})</li>
+        <li>Send the AI-drafted letter below requesting removal under PDPA/GDPR</li>
+        <li>If they don't respond within 30 days, escalate to your local data protection authority</li>
+      </ol>
+      <div style="background:var(--paper-warm); border:0.5px solid var(--rule); padding:1.25rem; margin-top:1.25rem; font-size:12px; line-height:1.8; color:var(--ink-soft);">
+        <p style="font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:0.75rem;">AI-drafted removal letter</p>
+        <p>To Whom It May Concern,</p><br>
+        <p>I am writing to request the removal of content referencing me at: <strong>${url}</strong></p><br>
+        <p>Grounds: ${reason}</p><br>
+        <p>I request this be actioned within 30 days under applicable data protection law.</p><br>
+        <p>Yours sincerely,<br>[Your full name]</p>
+      </div>
+      <button onclick="copyLetter()" style="margin-top:12px; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; background:transparent; border:0.5px solid var(--ink); padding:8px 16px; cursor:pointer; font-family:'DM Sans',sans-serif;">Copy letter</button>
+    `;
+  }
+
+  return steps;
+}
+
+function copyLetter() {
+  const text = document.querySelector('#removal-instructions .ai-letter')?.innerText
+    || document.querySelector('#removal-instructions div[style*="paper-warm"]')?.innerText || '';
+  navigator.clipboard.writeText(text).then(() => alert('Letter copied to clipboard.'));
+}
+
+function resetModal() {
+  document.getElementById('removal-form').style.display = 'block';
+  document.getElementById('removal-result').style.display = 'none';
+  document.getElementById('removal-url').value = '';
+  document.getElementById('removal-reason').value = '';
+  document.getElementById('removal-email').value = '';
+}
+
+window.addEventListener('load', loadConfig);
+</script>
+<!-- REMOVAL MODAL -->
+<div id="removal-modal" style="display:none; position:fixed; inset:0; background:rgba(14,14,13,0.6); z-index:200; align-items:center; justify-content:center; padding:1.5rem;">
+  <div style="background:var(--paper); max-width:580px; width:100%; max-height:90vh; overflow-y:auto; padding:2rem;">
+
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1.5rem; border-bottom:0.5px solid var(--rule); padding-bottom:1rem;">
+      <h2 style="font-family:'Cormorant Garamond',serif; font-weight:300; font-size:26px;">Request removal</h2>
+      <button onclick="closeModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink-muted);">×</button>
+    </div>
+
+    <div id="removal-form">
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:6px;">URL to remove *</label>
+        <input type="url" id="removal-url" placeholder="https://example.com/page-about-me" style="width:100%; padding:10px 12px; border:0.5px solid var(--ink); background:var(--paper); font-family:'DM Sans',sans-serif; font-size:13px; outline:none;" />
+      </div>
+
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:6px;">Removal type *</label>
+        <select id="removal-type" style="width:100%; padding:10px 12px; border:0.5px solid var(--ink); background:var(--paper); font-family:'DM Sans',sans-serif; font-size:13px; outline:none; appearance:none;">
+          <option value="search">Remove from Google search results</option>
+          <option value="gdpr">Right to erasure (GDPR / PDPA) request</option>
+          <option value="platform">Contact platform directly</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:6px;">Reason for removal *</label>
+        <select id="removal-reason" style="width:100%; padding:10px 12px; border:0.5px solid var(--ink); background:var(--paper); font-family:'DM Sans',sans-serif; font-size:13px; outline:none; appearance:none;">
+          <option value="The information is outdated and no longer accurate">Information is outdated or inaccurate</option>
+          <option value="The content contains false and defamatory statements about me">Content is false or defamatory</option>
+          <option value="The content exposes private personal information without consent">Private information exposed without consent</option>
+          <option value="The content relates to a resolved legal matter that should no longer be public">Resolved legal matter</option>
+          <option value="The content is causing ongoing harm to my personal and professional reputation">Causing ongoing reputational harm</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:1.5rem;">
+        <label style="display:block; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:6px;">Your email *</label>
+        <input type="email" id="removal-email" placeholder="For follow-up on your request" style="width:100%; padding:10px 12px; border:0.5px solid var(--ink); background:var(--paper); font-family:'DM Sans',sans-serif; font-size:13px; outline:none;" />
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button onclick="closeModal()" style="flex:1; padding:12px; background:transparent; border:0.5px solid var(--rule); font-family:'DM Sans',sans-serif; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; color:var(--ink-muted);">Cancel</button>
+        <button onclick="submitRemoval()" style="flex:2; padding:12px; background:var(--ink); border:none; color:var(--paper); font-family:'DM Sans',sans-serif; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer;">Generate removal instructions →</button>
+      </div>
+    </div>
+
+    <div id="removal-result" style="display:none;">
+      <div style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:1rem;">Removal plan ready</div>
+      <div id="removal-instructions" style="font-size:13px; color:var(--ink-soft); line-height:1.8;"></div>
+      <div style="display:flex; gap:10px; margin-top:1.5rem; padding-top:1rem; border-top:0.5px solid var(--rule);">
+        <button onclick="resetModal()" style="flex:1; padding:12px; background:transparent; border:0.5px solid var(--rule); font-family:'DM Sans',sans-serif; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; color:var(--ink-muted);">New request</button>
+        <button onclick="closeModal()" style="flex:1; padding:12px; background:var(--ink); border:none; color:var(--paper); font-family:'DM Sans',sans-serif; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer;">Done</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
